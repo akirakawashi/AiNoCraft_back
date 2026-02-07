@@ -1,0 +1,119 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Номер телефона добавлен</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background-color: #ffffff;
+            padding: 20px;
+        }
+        .container {
+            max-width: 600px;
+            margin: 0 auto;
+            background: linear-gradient(135deg, #1a1a2e 0%, #16213e 100%);
+            border-radius: 16px;
+            overflow: hidden;
+            box-shadow: 0 8px 32px rgba(123, 136, 255, 0.15);
+        }
+        .header {
+            padding: 40px 30px;
+            text-align: center;
+            background: linear-gradient(135deg, rgba(123, 136, 255, 0.1) 0%, rgba(255, 123, 198, 0.05) 100%);
+            backdrop-filter: blur(10px);
+            border-bottom: 1px solid rgba(123, 136, 255, 0.2);
+        }
+        .header h1 {
+            color: #7b88ff;
+            font-size: 28px;
+            margin-bottom: 10px;
+            text-shadow: 0 2px 8px rgba(123, 136, 255, 0.2);
+        }
+        .content {
+            padding: 40px 30px;
+            color: #e0e0e0;
+        }
+        .content p {
+            margin-bottom: 20px;
+            line-height: 1.6;
+            font-size: 14px;
+        }
+        .confirmation-block {
+            background: linear-gradient(135deg, rgba(123, 136, 255, 0.08) 0%, rgba(255, 123, 198, 0.03) 100%);
+            backdrop-filter: blur(10px);
+            border: 1px solid rgba(123, 136, 255, 0.2);
+            border-radius: 12px;
+            padding: 20px;
+            margin: 20px 0;
+            box-shadow: 0 4px 15px rgba(123, 136, 255, 0.1);
+            border-left: 4px solid #7b88ff;
+        }
+        .confirmation-block strong {
+            color: #7b88ff;
+        }
+        .security-info {
+            background: linear-gradient(135deg, rgba(255, 123, 198, 0.08) 0%, rgba(123, 136, 255, 0.03) 100%);
+            backdrop-filter: blur(10px);
+            border: 1px solid rgba(255, 123, 198, 0.2);
+            border-radius: 12px;
+            padding: 20px;
+            margin: 20px 0;
+        }
+        .security-info h3 {
+            color: #ff7bc6;
+            font-size: 14px;
+            margin-bottom: 10px;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+        }
+        .security-info p {
+            font-size: 13px;
+            color: #d0d0d0;
+            margin-bottom: 0;
+        }
+        .footer {
+            padding: 30px;
+            text-align: center;
+            background: linear-gradient(135deg, rgba(123, 136, 255, 0.05) 0%, rgba(255, 123, 198, 0.02) 100%);
+            border-top: 1px solid rgba(123, 136, 255, 0.2);
+            font-size: 12px;
+            color: #888;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>📱 Номер телефона добавлен</h1>
+        </div>
+        
+        <div class="content">
+            <p>Привет, <strong>{{ username }}</strong>!</p>
+            
+            <p>Номер телефона был успешно добавлен к вашему аккаунту. Это письмо подтверждает, что изменение было произведено.</p>
+            
+            <div class="confirmation-block">
+                <strong>✓ Статус:</strong> Номер телефона добавлен и верифицирован
+            </div>
+            
+            <div class="security-info">
+                <h3>🔒 Повышенная безопасность</h3>
+                <p>Теперь вы можете использовать двухфакторную аутентификацию для дополнительной защиты вашего аккаунта.</p>
+            </div>
+            
+            <p>Если вы не добавляли номер телефона, немедленно смените пароль и свяжитесь с нашей службой поддержки.</p>
+        </div>
+        
+        <div class="footer">
+            <p>© 2026 AiNoCraft. Все права защищены.</p>
+        </div>
+    </div>
+</body>
+</html>

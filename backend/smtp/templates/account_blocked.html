@@ -1,0 +1,141 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Аккаунт заблокирован</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background-color: #ffffff;
+            padding: 20px;
+        }
+        .container {
+            max-width: 600px;
+            margin: 0 auto;
+            background: linear-gradient(135deg, #1a1a2e 0%, #16213e 100%);
+            border-radius: 16px;
+            overflow: hidden;
+            box-shadow: 0 8px 32px rgba(255, 0, 0, 0.25);
+        }
+        .header {
+            padding: 40px 30px;
+            text-align: center;
+            background: linear-gradient(135deg, rgba(255, 0, 0, 0.15) 0%, rgba(255, 100, 130, 0.08) 100%);
+            backdrop-filter: blur(10px);
+            border-bottom: 1px solid rgba(255, 0, 0, 0.3);
+        }
+        .header h1 {
+            color: #ff5555;
+            font-size: 28px;
+            margin-bottom: 10px;
+            text-shadow: 0 2px 8px rgba(255, 0, 0, 0.25);
+        }
+        .content {
+            padding: 40px 30px;
+            color: #e0e0e0;
+        }
+        .content p {
+            margin-bottom: 20px;
+            line-height: 1.6;
+            font-size: 14px;
+        }
+        .info-block {
+            background: linear-gradient(135deg, rgba(255, 0, 0, 0.08) 0%, rgba(255, 100, 130, 0.03) 100%);
+            backdrop-filter: blur(10px);
+            border: 1px solid rgba(255, 0, 0, 0.25);
+            border-radius: 12px;
+            padding: 20px;
+            margin: 20px 0;
+            box-shadow: 0 4px 15px rgba(255, 0, 0, 0.1);
+        }
+        .info-block .label {
+            color: #ff5555;
+            font-size: 12px;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            margin-bottom: 5px;
+        }
+        .info-block .value {
+            color: #ffffff;
+            font-size: 16px;
+            font-weight: 500;
+        }
+        .reason-section {
+            background: linear-gradient(135deg, rgba(255, 0, 0, 0.08) 0%, rgba(255, 100, 130, 0.03) 100%);
+            backdrop-filter: blur(10px);
+            border: 1px solid rgba(255, 0, 0, 0.25);
+            border-radius: 12px;
+            padding: 20px;
+            margin: 20px 0;
+        }
+        .reason-code {
+            color: #ff5555;
+            font-weight: bold;
+            font-size: 14px;
+        }
+        .rules-link {
+            color: #ff5555;
+            text-decoration: none;
+            font-weight: 600;
+            transition: color 0.3s ease;
+        }
+        .rules-link:hover {
+            color: #ff8888;
+        }
+        .footer {
+            padding: 30px;
+            text-align: center;
+            background: linear-gradient(135deg, rgba(255, 0, 0, 0.05) 0%, rgba(255, 100, 130, 0.02) 100%);
+            border-top: 1px solid rgba(255, 0, 0, 0.25);
+            font-size: 12px;
+            color: #999;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>⚠️ Аккаунт заблокирован</h1>
+        </div>
+        
+        <div class="content">
+            <p>Привет, <strong>{{ username }}</strong>!</p>
+            
+            <p>Ваш аккаунт был заблокирован в соответствии с нашей политикой безопасности и правилами сообщества.</p>
+            
+            <div class="info-block">
+                <div class="label">Дата начала блокировки</div>
+                <div class="value"><span class="reason-code">{{ blocked_at }}</span></div>
+            </div>
+            
+            <div class="info-block">
+                <div class="label">Дата окончания блокировки</div>
+                <div class="value"><span class="reason-code">{{ unblock_date }}</span></div>
+            </div>
+            
+            <div class="reason-section">
+                <p>
+                    <strong>Причина блокировки:</strong><br>
+                    Нарушение правила <span class="reason-code">{{ reason }}</span>
+                </p>
+                <p style="margin-top: 15px;">
+                    Подробнее о причине вы можете узнать в нашем
+                    <a href="#" class="rules-link">документе с правилами</a>
+                </p>
+            </div>
+            
+            <p>Если вы считаете, что это решение принято ошибочно, вы можете подать апелляцию через форму поддержки.</p>
+        </div>
+        
+        <div class="footer">
+            <p>© 2026 AiNoCraft. Все права защищены.</p>
+        </div>
+    </div>
+</body>
+</html>

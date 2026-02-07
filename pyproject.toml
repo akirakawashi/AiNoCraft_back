@@ -1,0 +1,26 @@
+[project]
+name = "LoliCraft"
+version = "0.1.0"
+description = "Default template for PDM package"
+authors = [
+    {name = "shiawase", email = "skillet_skillet98@mail.ru"},
+]
+dependencies = ["fastapi>=0.127.0", "sqlalchemy>=2.0.45", "uvicorn>=0.40.0", "dotenv>=0.9.9", "pydantic[email]>=2.12.5", "mypy>=1.19.1", "types-passlib>=1.7.7.20250602", "pydantic-settings>=2.12.0", "rich>=14.2.0", "setuptools>=80.9.0", "asyncpg>=0.31.0", "sqlmodel>=0.0.29", "loguru>=0.7.3", "alembic>=1.17.2", "pwdlib[argon2]>=0.3.0", "pyjwt>=2.10.1", "redis[hiredis]>=7.1.0", "fastapi-limiter>=0.1.6", "cashews[redis]>=7.4.4", "minio>=7.2.20", "httpx>=0.28.1", "aiosmtplib>=5.0.0", "jinja2>=3.1.6", "uvloop>=0.22.1", "httptools>=0.7.1"]
+requires-python = "==3.13.*"
+readme = "README.md"
+license = {text = "MIT"}
+
+
+[tool.pdm]
+distribution = false
+
+[tool.ruff]
+line-length = 100
+indent-width = 4
+lint.extend-select = ["I"]
+
+[tool.alembic]
+script_location = "%(here)s/migrations"
+file_template = "%%(year)d_%%(month).2d_%%(day).2d_%%(hour).2d%%(minute).2d-%%(rev)s_%%(slug)s"
+prepend_sys_path = ["."]
+revision_environment = true
