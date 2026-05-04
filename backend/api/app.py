@@ -15,6 +15,9 @@ from backend.api.routers.check_user import router as check_user
 from backend.api.routers.health import router as health_router
 from backend.api.routers.login import router as login_router
 from backend.api.routers.logout import router as logout_router
+from backend.api.routers.minecraft_auth import router as minecraft_auth_router
+from backend.api.routers.minecraft_root import router as minecraft_root_router
+from backend.api.routers.minecraft_session import router as minecraft_session_router
 from backend.api.routers.refresh import router as refresh_router
 from backend.api.routers.register import router as register_router
 from backend.api.routers.reset_password import router as reset_password_router
@@ -58,7 +61,7 @@ async def lifespan(app: FastAPI):
         await SmtpProvider.close()
 
 
-app = FastAPI(title="LoliCraft API", version="1.0.3", lifespan=lifespan)
+app = FastAPI(title="AiNoCraft API", version="1.0.3", lifespan=lifespan)
 
 origins = [
     "https://ainocraft.com",
@@ -92,6 +95,15 @@ app.include_router(avatar_router, prefix=api_config.path)  # /api/v1/avatars
 app.include_router(check_user, prefix=api_config.path)  # /api/v1/check
 app.include_router(reset_password_router, prefix=api_config.path)  # /api/v1/reset_password
 app.include_router(health_router)  # /health
+app.include_router(
+    minecraft_root_router, prefix=api_config.minecraft_path
+)  # /minecraft-server-api/
+app.include_router(
+    minecraft_auth_router, prefix=api_config.minecraft_path
+)  # /minecraft-server-api/authserver/*
+app.include_router(
+    minecraft_session_router, prefix=api_config.minecraft_path
+)  # /minecraft-server-api/sessionserver/session/minecraft/*
 
 
 if __name__ == "__main__":
