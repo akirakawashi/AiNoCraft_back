@@ -15,13 +15,13 @@
 
 ## Обзор
 
-AiNoCraft Backend решает три задачи в одном сервисе:
+AiNoCraft Backend закрывает три группы задач в одном сервисе:
 
 - аккаунты пользователей: регистрация, логин, обновление токенов, смена и сброс пароля;
 - игровой API: Yggdrasil-совместимые эндпоинты для Minecraft-клиента и сервера;
 - инфраструктурные сервисы: хранение аватаров, отправка почты, rate limit, кеши и аудит сессий.
 
-Проект построен на FastAPI и использует PostgreSQL для основных данных, Redis для сессий и временных токенов, MinIO для файлов и SMTP для писем.
+Проект построен на FastAPI. Основные данные лежат в PostgreSQL, сессии и временные токены — в Redis, файлы — в MinIO, письма уходят через SMTP.
 
 ## Архитектура
 
@@ -41,13 +41,13 @@ flowchart LR
 
 ## Что умеет backend
 
-- Регистрация в 2 шага: `init` -> письмо с кодом -> `verify`.
-- JWT-аутентификация с access token в `Authorization` и refresh token в `HttpOnly` cookie.
-- Rotation и reuse-detection для refresh token через Redis.
-- Сброс пароля по email-коду с отдельным short-lived reset token.
-- Принудительный отзыв сессий при смене или сбросе пароля.
-- Загрузка аватаров через presigned URL в MinIO.
-- Yggdrasil-совместимый игровой auth/session API для Minecraft.
+- регистрация в 2 шага: `init` -> письмо с кодом -> `verify`;
+- JWT-аутентификация с access token в `Authorization` и refresh token в `HttpOnly` cookie;
+- rotation и reuse-detection для refresh token через Redis;
+- сброс пароля по email-коду с отдельным short-lived reset token;
+- принудительный отзыв сессий при смене или сбросе пароля;
+- загрузка аватаров через presigned URL в MinIO;
+- Yggdrasil-совместимый игровой auth/session API для Minecraft;
 - Alembic-миграции, rate limiting, SMTP-шаблоны и healthcheck из коробки.
 
 ## Стек
@@ -68,7 +68,7 @@ flowchart LR
 
 ### Вариант 1. Локальная разработка текущего кода
 
-Подходит, если вы хотите запускать backend именно из этого репозитория и сразу видеть локальные изменения.
+Подходит, если вы запускаете backend из этого репозитория и хотите сразу видеть локальные изменения.
 
 1. Установите Python `3.13` и один из инструментов: `uv` или `pdm`.
 2. Скопируйте [`.env.example`](.env.example) в `.env` и заполните секреты.
@@ -84,7 +84,7 @@ docker compose up -d postgres redis minio
 uvx pdm install
 ```
 
-Если вы уже работаете через PDM, можно использовать эквивалент:
+Если вы уже работаете через PDM, используйте эквивалент:
 
 ```bash
 pdm install
@@ -111,11 +111,11 @@ uvx pdm run uvicorn backend.api.app:app --host 0.0.0.0 --port 8000 --reload
 - MinIO API: `http://localhost:9000`
 - MinIO Console: `http://localhost:9001`
 
-> Если нативный запуск на Windows упрётся в зависимости уровня `uvloop`, самый стабильный путь для разработки — Docker Desktop или WSL2.
+> Если нативный запуск на Windows упрётся в зависимости уровня `uvloop`, стабильнее разрабатывать через Docker Desktop или WSL2.
 
 ### Вариант 2. Полный запуск через Docker Compose
 
-Подходит, если нужен быстрый старт всей системы в контейнерах.
+Подходит для быстрого старта всей системы в контейнерах.
 
 1. Скопируйте [`.env.docker.example`](.env.docker.example) в `.env`.
 2. Заполните секреты и логины.
@@ -132,7 +132,7 @@ docker compose ps
 docker compose logs -f backend
 ```
 
-> Важно: текущий `docker-compose.yml` использует опубликованный образ `ghcr.io/ainocraft/ainocraft-backend:latest`, а не собирает backend из текущего checkout. Для разработки локального кода используйте вариант 1 или замените `image:` на `build: .`.
+> Учтите: текущий `docker-compose.yml` использует опубликованный образ `ghcr.io/ainocraft/ainocraft-backend:latest`, а не собирает backend из текущего checkout. Для разработки локального кода используйте вариант 1 или замените `image:` на `build: .`.
 
 ## Переменные окружения
 
@@ -153,7 +153,7 @@ docker compose logs -f backend
 | Avatar | `AVATAR_BUCKET_NAME`, `AVATAR_ALLOWED_TYPES`, `AVATAR_ALLOWED_MIME_TYPES`, `AVATAR_MAX_SIZE` |
 | SMTP | `SMTP_HOST`, `SMTP_PORT`, `SMTP_USERNAME`, `SMTP_PASSWORD`, `SMTP_FROM_EMAIL`, `SMTP_FROM_NAME` |
 
-Минимум, без которого сервис не имеет смысла запускать в реальном окружении:
+Минимум, без которого сервис не стоит запускать в реальном окружении:
 
 - `AUTH_SECRET_KEY`
 - `POSTGRES_*`
@@ -168,7 +168,7 @@ docker compose logs -f backend
 | Access token | Возвращается в ответе API и передаётся в `Authorization: Bearer <token>` |
 | Refresh token | Хранится в `HttpOnly` cookie `refresh_token` |
 | Reset password token | Временный `HttpOnly` cookie `reset_password_token` после подтверждения email-кода |
-| Проверка сессий и токенов | Сначала идёт проверка через Redis, а PostgreSQL используется для audit log и связанных fallback/read-path сценариев |
+| Проверка сессий и токенов | Сначала идёт проверка через Redis, а PostgreSQL отвечает за audit log и связанные fallback/read-path сценарии |
 | Аудит сессий | PostgreSQL |
 | Безопасность | refresh rotation, reuse detection, отзыв сессий при смене/сбросе пароля |
 
@@ -197,7 +197,7 @@ docker compose logs -f backend
 | Authserver | `POST /authserver/authenticate`, `POST /authserver/refresh`, `POST /authserver/validate`, `POST /authserver/invalidate`, `POST /authserver/signout` |
 | Sessionserver | `POST /sessionserver/session/minecraft/join`, `GET /sessionserver/session/minecraft/hasJoined`, `GET /sessionserver/session/minecraft/profile/{uuid}` |
 
-Полная OpenAPI-документация доступна по `/docs`.
+Полная OpenAPI-документация доступна на `/docs`.
 
 ## Примеры запросов
 
