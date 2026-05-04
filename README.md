@@ -168,7 +168,7 @@ docker compose logs -f backend
 | Access token | Возвращается в ответе API и передаётся в `Authorization: Bearer <token>` |
 | Refresh token | Хранится в `HttpOnly` cookie `refresh_token` |
 | Reset password token | Временный `HttpOnly` cookie `reset_password_token` после подтверждения email-кода |
-| Session source of truth | Redis |
+| Проверка сессий и токенов | Сначала идёт проверка через Redis, а PostgreSQL используется для audit log и связанных fallback/read-path сценариев |
 | Аудит сессий | PostgreSQL |
 | Безопасность | refresh rotation, reuse detection, отзыв сессий при смене/сбросе пароля |
 
@@ -262,7 +262,7 @@ docker build -t ainocraft-backend-local .
 
 ## Что стоит помнить
 
-- `Redis` в проекте используется не только как кеш, но и как источник истины для refresh/reset токенов.
-- `PostgreSQL` хранит бизнес-данные и audit log сессий, но не используется как основной runtime-store для валидации refresh token.
+- `Redis` в проекте используется не только как кеш, но и как первый слой проверки для refresh/reset токенов.
+- `PostgreSQL` хранит бизнес-данные и audit log сессий, а в части session/token flow участвует и в связанных read-path/fallback-сценариях.
 - `MinIO` нужен как минимум для аватаров; публичный URL формируется через `MINIO_PUBLIC_URL`.
 - `entrypoint.sh` при контейнерном запуске автоматически прогоняет `alembic upgrade head` перед стартом API.
