@@ -48,11 +48,23 @@ class AuthConfig(BaseSettings):
     reset_password_token_lifetime: timedelta = Field(
         default=timedelta(minutes=10), description="Password reset token lifetime"
     )
+    game_access_token_lifetime: timedelta = Field(
+        default=timedelta(days=1), description="Game access token lifetime"
+    )
+    game_refresh_token_lifetime: timedelta = Field(
+        default=timedelta(days=30), description="Game refresh token lifetime"
+    )
+    game_join_ttl: timedelta = Field(
+        default=timedelta(seconds=60), description="TTL for join -> hasJoined handshake"
+    )
 
     @field_validator(
         "access_token_lifetime",
         "refresh_token_lifetime",
         "reset_password_token_lifetime",
+        "game_access_token_lifetime",
+        "game_refresh_token_lifetime",
+        "game_join_ttl",
         mode="before",
     )
     @classmethod
@@ -70,6 +82,14 @@ class AuthConfig(BaseSettings):
     def get_reset_password_token_expires_at(self) -> datetime:
         """Get reset password token expiration time from current moment"""
         return datetime.now(tz=UTC) + self.reset_password_token_lifetime
+
+    def get_game_access_token_expires_at(self) -> datetime:
+        """Get game access token expiration time from current moment"""
+        return datetime.now(tz=UTC) + self.game_access_token_lifetime
+
+    def get_game_refresh_token_expires_at(self) -> datetime:
+        """Get game refresh token expiration time from current moment"""
+        return datetime.now(tz=UTC) + self.game_refresh_token_lifetime
 
 
 auth_settings = AuthConfig()  # type: ignore

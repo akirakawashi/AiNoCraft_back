@@ -1,23 +1,31 @@
 from datetime import datetime
 from typing import TYPE_CHECKING, Optional
+from uuid import UUID, uuid4
 
+from sqlalchemy import Uuid
 from sqlmodel import Column, DateTime, Field, Relationship, func
 
 from backend.database.base import BaseModel
 
 if TYPE_CHECKING:
     from backend.database.tables.balance import Balance
+    from backend.database.tables.game_session import GameSession
     from backend.database.tables.user_session import UserSession
 
 
 class User(BaseModel, table=True):
     __tablename__ = "users"
 
-    user_id: int = Field(primary_key=True, description="User ID")
+    user_id: UUID = Field(
+        default_factory=uuid4,
+        sa_column=Column(Uuid(as_uuid=True), primary_key=True, nullable=False),
+        description="User ID",
+    )
     login: str = Field(unique=True, nullable=False, description="User login")
     email: str = Field(unique=True, nullable=False, description="User email")
     password: str = Field(nullable=False, description="User password")
     sessions: list["UserSession"] = Relationship(back_populates="user")
+    game_sessions: list["GameSession"] = Relationship(back_populates="user")
     balance: "Balance" = Relationship(back_populates="user")
     password_change_date: Optional[datetime] = Field(
         default=None,

@@ -14,6 +14,9 @@ class ApiConfig(BaseSettings):
     )
 
     path: str = Field(default="/api/v1", description="Base API path")
+    minecraft_path: str = Field(
+        default="/minecraft-server-api", description="Base Minecraft API path"
+    )
     secure: bool = Field(default=False, description="Use secure cookies")
     dev_mode: bool = Field(default=False, description="Development mode")
 
