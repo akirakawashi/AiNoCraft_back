@@ -43,8 +43,7 @@ services:
       - ainocraft_network
 
   backend:
-    build: .
-    image: backend:latest
+    image: ghcr.io/ainocraft/ainocraft-backend:latest
     container_name: backend
     restart: unless-stopped
     ports:
