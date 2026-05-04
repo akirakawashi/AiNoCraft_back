@@ -1,3 +1,5 @@
+from uuid import UUID
+
 from fastapi import APIRouter, BackgroundTasks, Depends, Request, Response
 from fastapi_limiter.depends import RateLimiter
 from loguru import logger
@@ -16,6 +18,7 @@ from backend.database.repositories.user_session import UserSessionRepository
 from backend.redis.cache.session_cache_service import SessionCacheService
 from backend.utils.auth import AuthService
 from backend.utils.encryption import EncryptionService
+from backend.utils.request_meta import get_client_ip, get_user_agent
 
 router = APIRouter(tags=["login"])
 
@@ -54,8 +57,8 @@ async def login(
     """
     user = await UserRepository.get_user_by_login(session=session, login=request.login)
 
-    user_agent = raw_request.headers.get("user-agent")
-    ip_address = raw_request.client.host if raw_request.client else None
+    user_agent = get_user_agent(raw_request)
+    ip_address = get_client_ip(raw_request)
 
     logger.debug(
         f"Login attempt for user '{request.login}' from IP '{ip_address}' with device info '{user_agent}'"
@@ -148,7 +151,7 @@ async def login(
 
 
 async def _manage_user_session(
-    user_id: int,
+    user_id: UUID,
     refresh_token: str,
     user_agent: str | None,
     ip_address: str | None,

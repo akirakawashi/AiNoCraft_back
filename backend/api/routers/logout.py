@@ -9,6 +9,7 @@ from backend.database.repositories.user_session import UserSessionRepository
 from backend.redis.cache.session_cache_service import SessionCacheService
 from backend.utils.auth import AuthService
 from backend.utils.encryption import EncryptionService
+from backend.utils.request_meta import get_client_ip, get_user_agent
 
 router = APIRouter(tags=["logout"])
 
@@ -37,8 +38,8 @@ async def logout(
     Returns:
         dict[str, str]: Success message
     """
-    user_agent = request.headers.get("user-agent")
-    ip_address = request.client.host if request.client else None
+    user_agent = get_user_agent(request)
+    ip_address = get_client_ip(request)
 
     logger.debug(f"Logout attempt from IP '{ip_address}' with device info '{user_agent}'")
 

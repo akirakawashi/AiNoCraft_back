@@ -1,4 +1,5 @@
 import asyncio
+from uuid import UUID
 
 from fastapi import APIRouter, BackgroundTasks, Depends
 from fastapi_limiter.depends import RateLimiter
@@ -131,7 +132,7 @@ async def change_password(
 
 
 async def _update_user_sessions(
-    user_id: int,
+    user_id: UUID,
 ) -> None:
     """
     Background task to update all user sessions after password change.
