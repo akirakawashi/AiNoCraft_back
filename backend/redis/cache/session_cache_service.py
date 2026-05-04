@@ -8,18 +8,28 @@ If a token doesn't exist in Redis, the session is invalid.
 
 import asyncio
 from datetime import UTC, datetime, timedelta
+from uuid import UUID
 
 from cashews import cache
 from loguru import logger
 from pydantic import BaseModel, Field, ValidationError
 
+from backend.redis.cache.keyspace import CacheKeyspace
 from backend.utils.encryption import EncryptionService
+
+SESSION_CACHE = CacheKeyspace.from_prefix("session:user")
+SESSION_TOKEN_CACHE = SESSION_CACHE.scope("{user_id}", "token")
+SESSION_FAMILY_CACHE = SESSION_CACHE.scope("{user_id}", "family")
+SESSION_TOKEN_TEMPLATE = "{token_hash}"
+SESSION_FAMILY_TEMPLATE = "{session_family_id}"
+SESSION_ALL_TOKENS_TEMPLATE = "*"
+SESSION_ALL_FAMILIES_TEMPLATE = "*"
 
 
 class SessionData(BaseModel):
     """Data structure for a single session token stored in Redis."""
 
-    user_id: int
+    user_id: UUID
     token_hash: str
     session_family_id: str
     user_agent: str | None = None
@@ -48,12 +58,8 @@ class SessionCacheService:
     - If any other token (old/stolen) is presented → revoke entire session family
     """
 
-    _KEY_PREFIX = "session:user"
-    _TOKEN_SUFFIX = "token"
-    _FAMILY_SUFFIX = "family"
-
     @classmethod
-    def _get_token_key(cls, user_id: int, token_hash: str) -> str:
+    def _get_token_key(cls, user_id: UUID, token_hash: str) -> str:
         """
         Generate Redis key for a refresh token.
 
@@ -64,10 +70,14 @@ class SessionCacheService:
         Returns:
             Redis key string
         """
-        return f"{cls._KEY_PREFIX}:{user_id}:{cls._TOKEN_SUFFIX}:{token_hash}"
+        return SESSION_TOKEN_CACHE.key(
+            SESSION_TOKEN_TEMPLATE,
+            user_id=user_id,
+            token_hash=token_hash,
+        )
 
     @classmethod
-    def _get_user_sessions_pattern(cls, user_id: int) -> str:
+    def _get_user_sessions_pattern(cls, user_id: UUID) -> str:
         """
         Generate Redis pattern to match all sessions for a user.
 
@@ -77,10 +87,13 @@ class SessionCacheService:
         Returns:
             Redis pattern string
         """
-        return f"{cls._KEY_PREFIX}:{user_id}:{cls._TOKEN_SUFFIX}:*"
+        return SESSION_TOKEN_CACHE.key(
+            SESSION_ALL_TOKENS_TEMPLATE,
+            user_id=user_id,
+        )
 
     @classmethod
-    def _get_session_family_key(cls, user_id: int, session_family_id: str) -> str:
+    def _get_session_family_key(cls, user_id: UUID, session_family_id: str) -> str:
         """
         Generate Redis key for tracking all tokens in a session family.
 
@@ -94,10 +107,14 @@ class SessionCacheService:
         Returns:
             Redis key string
         """
-        return f"{cls._KEY_PREFIX}:{user_id}:{cls._FAMILY_SUFFIX}:{session_family_id}"
+        return SESSION_FAMILY_CACHE.key(
+            SESSION_FAMILY_TEMPLATE,
+            user_id=user_id,
+            session_family_id=session_family_id,
+        )
 
     @classmethod
-    def _get_session_family_key_pattern(cls, user_id: int) -> str:
+    def _get_session_family_key_pattern(cls, user_id: UUID) -> str:
         """
         Generate Redis pattern to match all session families for a user.
 
@@ -107,7 +124,10 @@ class SessionCacheService:
         Returns:
             Redis pattern string
         """
-        return f"{cls._KEY_PREFIX}:{user_id}:{cls._FAMILY_SUFFIX}:*"
+        return SESSION_FAMILY_CACHE.key(
+            SESSION_ALL_FAMILIES_TEMPLATE,
+            user_id=user_id,
+        )
 
     @staticmethod
     def _parse_session_data(raw_data: object) -> SessionData | None:
@@ -143,7 +163,7 @@ class SessionCacheService:
 
     @staticmethod
     def generate_session_family_id(
-        user_id: int, user_agent: str | None, ip_address: str | None
+        user_id: UUID, user_agent: str | None, ip_address: str | None
     ) -> str:
         """
         Generate deterministic session family ID based on user + device + IP.
@@ -166,7 +186,7 @@ class SessionCacheService:
     @classmethod
     async def store_refresh_token(
         cls,
-        user_id: int,
+        user_id: UUID,
         refresh_token: str,
         ttl: timedelta,
         session_family_id: str,
@@ -225,7 +245,7 @@ class SessionCacheService:
 
     @classmethod
     async def _verify_token_is_current(
-        cls, user_id: int, token_hash: str, session_family_id: str
+        cls, user_id: UUID, token_hash: str, session_family_id: str
     ) -> bool:
         """
         Check if token is the current active token in its family.
@@ -261,7 +281,7 @@ class SessionCacheService:
         return True
 
     @classmethod
-    async def verify_refresh_token(cls, user_id: int, refresh_token: str) -> SessionData | None:
+    async def verify_refresh_token(cls, user_id: UUID, refresh_token: str) -> SessionData | None:
         """
         Verify if a refresh token is valid and current.
 
@@ -296,7 +316,7 @@ class SessionCacheService:
         return session_data
 
     @classmethod
-    async def get_refresh_token_ttl(cls, user_id: int, refresh_token: str) -> int | None:
+    async def get_refresh_token_ttl(cls, user_id: UUID, refresh_token: str) -> int | None:
         """
         Get remaining TTL (time to live) in seconds for a refresh token.
 
@@ -320,7 +340,7 @@ class SessionCacheService:
             return None
 
     @classmethod
-    async def delete_refresh_token(cls, user_id: int, refresh_token: str) -> bool:
+    async def delete_refresh_token(cls, user_id: UUID, refresh_token: str) -> bool:
         """
         Delete a specific refresh token from Redis (logout/revoke).
 
@@ -343,7 +363,7 @@ class SessionCacheService:
 
     @classmethod
     async def delete_user_device_sessions(
-        cls, user_id: int, user_agent: str | None, ip_address: str | None
+        cls, user_id: UUID, user_agent: str | None, ip_address: str | None
     ) -> int:
         """
         Delete all sessions for a specific device (user_agent + ip_address).
@@ -380,7 +400,7 @@ class SessionCacheService:
         return len(keys_to_delete)
 
     @classmethod
-    async def delete_all_user_sessions(cls, user_id: int) -> None:
+    async def delete_all_user_sessions(cls, user_id: UUID) -> None:
         """
         Delete all refresh tokens for a user (logout from all devices).
 
@@ -400,7 +420,7 @@ class SessionCacheService:
     @classmethod
     async def rotate_refresh_token(
         cls,
-        user_id: int,
+        user_id: UUID,
         old_refresh_token: str,
         new_refresh_token: str,
         ttl: timedelta,
@@ -464,7 +484,7 @@ class SessionCacheService:
         return True
 
     @classmethod
-    async def revoke_session_family(cls, user_id: int, session_family_id: str) -> int:
+    async def revoke_session_family(cls, user_id: UUID, session_family_id: str) -> int:
         """
         Revoke all tokens in a session family (used when reuse is detected).
 

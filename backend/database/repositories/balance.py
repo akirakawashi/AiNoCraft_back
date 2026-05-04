@@ -1,14 +1,19 @@
-from cashews import cache
+from uuid import UUID
+
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlmodel import select
 
 from backend.database.tables import Balance
+from backend.redis.cache.keyspace import CacheKeyspace
+
+BALANCE_CACHE = CacheKeyspace.from_file(__file__)
+BALANCE_BY_USER_TEMPLATE = "user:{user_id}"
 
 
 class BalanceRepository:
     @staticmethod
-    @cache(ttl="15m", key="balance:user:{user_id}")
-    async def get_balance_by_user_id(session: AsyncSession, user_id: int) -> tuple[int, int]:
+    @BALANCE_CACHE.cached(ttl="15m", template=BALANCE_BY_USER_TEMPLATE)
+    async def get_balance_by_user_id(session: AsyncSession, user_id: UUID) -> tuple[int, int]:
         """
         Get balance by user ID.
 

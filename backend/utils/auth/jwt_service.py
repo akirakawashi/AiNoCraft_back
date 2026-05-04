@@ -52,7 +52,7 @@ class AuthService:
             ip_address=payload.ip_address,
             iat=now.timestamp(),
             exp=(now + expires_delta).timestamp(),
-        ).model_dump()
+        ).model_dump(mode="json")
 
         return jwt.encode(
             payload=payload_dict,

@@ -60,4 +60,8 @@ MINIO_BUCKETS = [
         name="avatars",
         policy=BucketPolicy(allow_anonymous_get=True, allow_anonymous_put=False),
     ),
+    BucketConfig(
+        name="downloads",
+        policy=BucketPolicy(allow_anonymous_get=True, allow_anonymous_put=False),
+    ),
 ]

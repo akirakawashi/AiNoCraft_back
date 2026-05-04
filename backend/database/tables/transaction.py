@@ -1,6 +1,8 @@
 from datetime import datetime
 from typing import Optional
+from uuid import UUID
 
+from sqlalchemy import Uuid
 from sqlmodel import CheckConstraint, Column, DateTime, Field, ForeignKey, Integer, func
 
 from backend.database.base import BaseModel
@@ -45,9 +47,9 @@ class Transaction(BaseModel, table=True):
             autoincrement=True,
         )
     )
-    user_id: int = Field(
+    user_id: UUID = Field(
         sa_column=Column(
-            Integer(),
+            Uuid(as_uuid=True),
             ForeignKey("users.user_id", ondelete="CASCADE"),
             nullable=False,
             index=True,

@@ -1,8 +1,8 @@
-"""initial commit
+"""initial
 
-Revision ID: 4c5aa18bf481
+Revision ID: 948eaaa1b4f5
 Revises:
-Create Date: 2026-01-27 10:48:58.205105
+Create Date: 2026-03-08 05:46:14.236011
 
 """
 
@@ -15,7 +15,7 @@ import sqlmodel.sql.sqltypes
 from alembic import op
 
 # revision identifiers, used by Alembic.
-revision: str = "4c5aa18bf481"
+revision: str = "948eaaa1b4f5"
 down_revision: Union[str, Sequence[str], None] = None
 branch_labels: Union[str, Sequence[str], None] = None
 depends_on: Union[str, Sequence[str], None] = None
@@ -39,7 +39,7 @@ def upgrade() -> None:
     )
     op.create_table(
         "users",
-        sa.Column("user_id", sa.Integer(), nullable=False),
+        sa.Column("user_id", sa.Uuid(), nullable=False),
         sa.Column("login", sqlmodel.sql.sqltypes.AutoString(), nullable=False),
         sa.Column("email", sqlmodel.sql.sqltypes.AutoString(), nullable=False),
         sa.Column("password", sqlmodel.sql.sqltypes.AutoString(), nullable=False),
@@ -59,7 +59,7 @@ def upgrade() -> None:
     )
     op.create_table(
         "balances",
-        sa.Column("user_id", sa.Integer(), nullable=False),
+        sa.Column("user_id", sa.Uuid(), nullable=False),
         sa.Column("loli_coins", sa.Integer(), nullable=False),
         sa.Column("loli_crystal", sa.Integer(), nullable=False),
         sa.Column(
@@ -74,9 +74,56 @@ def upgrade() -> None:
         sa.PrimaryKeyConstraint("user_id"),
     )
     op.create_table(
+        "game_sessions",
+        sa.Column("session_id", sa.Integer(), autoincrement=True, nullable=False),
+        sa.Column("user_id", sa.Uuid(), nullable=False),
+        sa.Column("client_token", sqlmodel.sql.sqltypes.AutoString(), nullable=False),
+        sa.Column("access_token_hash", sqlmodel.sql.sqltypes.AutoString(), nullable=False),
+        sa.Column("refresh_token_hash", sqlmodel.sql.sqltypes.AutoString(), nullable=False),
+        sa.Column("revoked", sa.Boolean(), nullable=False),
+        sa.Column("access_expires_at", sa.DateTime(timezone=True), nullable=False),
+        sa.Column("refresh_expires_at", sa.DateTime(timezone=True), nullable=False),
+        sa.Column(
+            "created_at",
+            sa.DateTime(timezone=True),
+            server_default=sa.text("now()"),
+            nullable=False,
+        ),
+        sa.Column("last_used_at", sa.DateTime(timezone=True), nullable=True),
+        sa.Column("joined_server_id", sqlmodel.sql.sqltypes.AutoString(), nullable=True),
+        sa.Column("joined_at", sa.DateTime(timezone=True), nullable=True),
+        sa.Column("join_ip", sqlmodel.sql.sqltypes.AutoString(), nullable=True),
+        sa.Column("user_agent", sqlmodel.sql.sqltypes.AutoString(), nullable=True),
+        sa.Column("ip_address", sqlmodel.sql.sqltypes.AutoString(), nullable=True),
+        sa.ForeignKeyConstraint(["user_id"], ["users.user_id"], ondelete="CASCADE"),
+        sa.PrimaryKeyConstraint("session_id"),
+    )
+    op.create_index(
+        op.f("ix_game_sessions_access_token_hash"),
+        "game_sessions",
+        ["access_token_hash"],
+        unique=False,
+    )
+    op.create_index(
+        op.f("ix_game_sessions_client_token"), "game_sessions", ["client_token"], unique=False
+    )
+    op.create_index(
+        op.f("ix_game_sessions_joined_server_id"),
+        "game_sessions",
+        ["joined_server_id"],
+        unique=False,
+    )
+    op.create_index(
+        op.f("ix_game_sessions_refresh_token_hash"),
+        "game_sessions",
+        ["refresh_token_hash"],
+        unique=False,
+    )
+    op.create_index(op.f("ix_game_sessions_user_id"), "game_sessions", ["user_id"], unique=False)
+    op.create_table(
         "transactions",
         sa.Column("transaction_id", sa.Integer(), autoincrement=True, nullable=False),
-        sa.Column("user_id", sa.Integer(), nullable=False),
+        sa.Column("user_id", sa.Uuid(), nullable=False),
         sa.Column("transaction_type_id", sa.Integer(), nullable=False),
         sa.Column("amount", sa.Integer(), nullable=False),
         sa.Column(
@@ -128,7 +175,7 @@ def upgrade() -> None:
     op.create_table(
         "user_sessions",
         sa.Column("session_id", sa.Integer(), nullable=False),
-        sa.Column("user_id", sa.Integer(), nullable=False),
+        sa.Column("user_id", sa.Uuid(), nullable=False),
         sa.Column("refresh_token_hash", sqlmodel.sql.sqltypes.AutoString(), nullable=False),
         sa.Column("revoked", sa.Boolean(), nullable=False),
         sa.Column("expires_at", sa.DateTime(timezone=True), nullable=False),
@@ -187,6 +234,12 @@ def downgrade() -> None:
     op.drop_index(op.f("ix_transactions_status"), table_name="transactions")
     op.drop_index(op.f("ix_transactions_purchase_category"), table_name="transactions")
     op.drop_table("transactions")
+    op.drop_index(op.f("ix_game_sessions_user_id"), table_name="game_sessions")
+    op.drop_index(op.f("ix_game_sessions_refresh_token_hash"), table_name="game_sessions")
+    op.drop_index(op.f("ix_game_sessions_joined_server_id"), table_name="game_sessions")
+    op.drop_index(op.f("ix_game_sessions_client_token"), table_name="game_sessions")
+    op.drop_index(op.f("ix_game_sessions_access_token_hash"), table_name="game_sessions")
+    op.drop_table("game_sessions")
     op.drop_table("balances")
     op.drop_table("users")
     op.drop_table("transaction_type")

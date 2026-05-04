@@ -1,5 +1,6 @@
 from datetime import datetime
 from typing import cast
+from uuid import UUID
 
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlmodel import Column, and_, func, not_, select, update
@@ -54,7 +55,7 @@ class UserSessionRepository:
     @staticmethod
     async def find_valid_session_by_token(
         session: AsyncSession,
-        user_id: int,
+        user_id: UUID,
         refresh_token: str,
         user_agent: str | None = None,
         ip_address: str | None = None,
@@ -93,7 +94,7 @@ class UserSessionRepository:
     @staticmethod
     async def create_session(
         session: AsyncSession,
-        user_id: int,
+        user_id: UUID,
         refresh_token_hash: str,
         expires_at: datetime,
         user_agent: str | None = None,
@@ -184,7 +185,7 @@ class UserSessionRepository:
 
     @staticmethod
     async def revoke_current_sessions(
-        session: AsyncSession, user_id: int, user_agent: str | None, ip_address: str | None
+        session: AsyncSession, user_id: UUID, user_agent: str | None, ip_address: str | None
     ) -> int:
         """
         Revoke all current sessions for a user that match the given user agent and IP address.
@@ -214,7 +215,7 @@ class UserSessionRepository:
         return result.rowcount if hasattr(result, "rowcount") else 0
 
     @staticmethod
-    async def revoke_all_sessions(session: AsyncSession, user_id: int) -> int:
+    async def revoke_all_sessions(session: AsyncSession, user_id: UUID) -> int:
         """
         Revoke all sessions for a user.
 

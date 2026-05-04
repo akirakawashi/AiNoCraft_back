@@ -5,6 +5,7 @@ Stores user data temporarily for registration and password-reset flows.
 
 import asyncio
 from datetime import UTC, datetime, timedelta
+from uuid import UUID
 
 from cashews import cache
 from loguru import logger
@@ -13,13 +14,20 @@ from pydantic import BaseModel, ValidationError
 from backend.api.exceptions.email import EmailCodeExpiredException, EmailInvalidCodeException
 from backend.api.exceptions.limit import LimitTooManyRequestsException
 from backend.api.schemas.shared import PendingUserData
+from backend.redis.cache.keyspace import CacheKeyspace
 from backend.utils.encryption import EncryptionService
+
+PENDING_EMAIL_CACHE = CacheKeyspace.from_prefix("pending")
+PENDING_EMAIL_COOLDOWN_CACHE = CacheKeyspace.from_prefix("cooldown")
+RESET_TOKEN_CACHE = CacheKeyspace.from_prefix("reset:user").scope("{user_id}", "token")
+PENDING_EMAIL_TEMPLATE = "{email}"
+RESET_TOKEN_TEMPLATE = "{token_hash}"
 
 
 class ResetTokenData(BaseModel):
     """Data structure for password reset token stored in Redis."""
 
-    user_id: int
+    user_id: UUID
     token_hash: str
     user_agent: str | None = None
     ip_address: str | None = None
@@ -32,10 +40,9 @@ class PendingEmailCacheService:
     (for example: new-user registration and email-based password reset).
     """
 
-    _PENDING_PREFIX = "pending"
-    _COOLDOWN_PREFIX = "cooldown"
-    _RESET_PREFIX = "reset:user"
-    _TOKEN_SUFFIX = "token"
+    @staticmethod
+    def _normalize_email(email: str) -> str:
+        return email.lower().strip()
 
     @classmethod
     def _get_pending_key(cls, email: str) -> str:
@@ -43,7 +50,7 @@ class PendingEmailCacheService:
         Generate Redis key for pending user action.
         Key format: pending:{email}
         """
-        return f"{cls._PENDING_PREFIX}:{email.lower().strip()}"
+        return PENDING_EMAIL_CACHE.key(PENDING_EMAIL_TEMPLATE, email=cls._normalize_email(email))
 
     @classmethod
     def _get_cooldown_key(cls, email: str) -> str:
@@ -51,15 +58,22 @@ class PendingEmailCacheService:
         Generate Redis key for registration cooldown tracking.
         Key format: cooldown:{email}
         """
-        return f"{cls._COOLDOWN_PREFIX}:{email.lower().strip()}"
+        return PENDING_EMAIL_COOLDOWN_CACHE.key(
+            PENDING_EMAIL_TEMPLATE,
+            email=cls._normalize_email(email),
+        )
 
     @classmethod
-    def _get_reset_token_key(cls, user_id: int, token_hash: str) -> str:
+    def _get_reset_token_key(cls, user_id: UUID, token_hash: str) -> str:
         """
         Generate Redis key for password reset tokens.
         Key format: reset:user:{user_id}:token:{token_hash}
         """
-        return f"{cls._RESET_PREFIX}:{user_id}:{cls._TOKEN_SUFFIX}:{token_hash}"
+        return RESET_TOKEN_CACHE.key(
+            RESET_TOKEN_TEMPLATE,
+            user_id=user_id,
+            token_hash=token_hash,
+        )
 
     @staticmethod
     def _parse_pending_user_data(raw_data: object) -> PendingUserData | None:
@@ -162,7 +176,7 @@ class PendingEmailCacheService:
     @classmethod
     async def store_reset_token(
         cls,
-        user_id: int,
+        user_id: UUID,
         reset_token: str,
         ttl: timedelta,
         user_agent: str | None = None,
@@ -196,7 +210,7 @@ class PendingEmailCacheService:
         )
 
     @classmethod
-    async def verify_reset_token(cls, user_id: int, reset_token: str) -> bool:
+    async def verify_reset_token(cls, user_id: UUID, reset_token: str) -> bool:
         """
         Verify if reset token exists in Redis.
 
@@ -214,7 +228,7 @@ class PendingEmailCacheService:
         return True
 
     @classmethod
-    async def delete_reset_token(cls, user_id: int, reset_token: str) -> None:
+    async def delete_reset_token(cls, user_id: UUID, reset_token: str) -> None:
         """
         Delete reset token from Redis.
 
@@ -228,7 +242,7 @@ class PendingEmailCacheService:
         logger.debug(f"[PendingEmailAction] Deleted reset token for user_id={user_id}")
 
     @classmethod
-    async def get_reset_token_ttl(cls, user_id: int, reset_token: str) -> int | None:
+    async def get_reset_token_ttl(cls, user_id: UUID, reset_token: str) -> int | None:
         """
         Get remaining TTL (time to live) in seconds for reset token.
 

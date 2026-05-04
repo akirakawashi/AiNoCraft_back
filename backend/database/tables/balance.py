@@ -1,6 +1,8 @@
 from datetime import datetime
 from typing import TYPE_CHECKING, Optional
+from uuid import UUID
 
+from sqlalchemy import Uuid
 from sqlmodel import (
     CheckConstraint,
     Column,
@@ -25,10 +27,13 @@ class Balance(BaseModel, table=True):
         CheckConstraint("loli_crystal >= 0", name="ck_balances_loli_crystal_nonnegative"),
     )
 
-    user_id: int = Field(
+    user_id: UUID = Field(
         description="Unique identifier for the user",
         sa_column=Column(
-            "user_id", ForeignKey("users.user_id", ondelete="CASCADE"), primary_key=True
+            "user_id",
+            Uuid(as_uuid=True),
+            ForeignKey("users.user_id", ondelete="CASCADE"),
+            primary_key=True,
         ),
     )
     user: "User" = Relationship(back_populates="balance")
