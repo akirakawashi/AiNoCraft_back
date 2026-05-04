@@ -259,10 +259,3 @@ ruff format .
 ```bash
 docker build -t ainocraft-backend-local .
 ```
-
-## Что стоит помнить
-
-- `Redis` в проекте используется не только как кеш, но и как первый слой проверки для refresh/reset токенов.
-- `PostgreSQL` хранит бизнес-данные и audit log сессий, а в части session/token flow участвует и в связанных read-path/fallback-сценариях.
-- `MinIO` нужен как минимум для аватаров; публичный URL формируется через `MINIO_PUBLIC_URL`.
-- `entrypoint.sh` при контейнерном запуске автоматически прогоняет `alembic upgrade head` перед стартом API.
