@@ -1,4 +1,5 @@
 import asyncio
+from uuid import UUID
 
 from fastapi import APIRouter, BackgroundTasks, Depends, Request, Response
 from fastapi_limiter.depends import RateLimiter
@@ -27,6 +28,7 @@ from backend.redis.cache import PendingEmailCacheService, SessionCacheService
 from backend.smtp.email_service import EmailService
 from backend.utils.auth import AuthService
 from backend.utils.code_verify import generate_verification_code
+from backend.utils.request_meta import get_client_ip, get_user_agent
 
 router = APIRouter(prefix="/reset-password", tags=["reset_password"])
 
@@ -127,8 +129,8 @@ async def reset_password_verify(
     Returns:
         ResetPasswordResponse: Contains the reset password token.
     """
-    user_agent = raw_request.headers.get("user-agent")
-    ip_address = raw_request.client.host if raw_request.client else None
+    user_agent = get_user_agent(raw_request)
+    ip_address = get_client_ip(raw_request)
 
     logger.debug(
         f"Password reset attempt for email '{request.email}' from IP '{ip_address}' with device info '{user_agent}'"
@@ -277,7 +279,7 @@ async def reset_password_finalize(
         )
 
 
-async def _revoke_all_sessions(user_id: int):
+async def _revoke_all_sessions(user_id: UUID):
     """
     Background task to revoke all sessions for a user during password reset.
 

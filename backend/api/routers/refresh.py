@@ -14,6 +14,7 @@ from backend.database.repositories.user_session import UserSessionRepository
 from backend.redis.cache.session_cache_service import SessionCacheService
 from backend.utils.auth import AuthService
 from backend.utils.encryption import EncryptionService
+from backend.utils.request_meta import get_client_ip, get_user_agent
 
 router = APIRouter(tags=["refresh"])
 
@@ -58,8 +59,8 @@ async def refresh_token(
         LoginResponse: Contains the new access token.
     """
     decoded_token, refresh_token_value = token_data
-    user_agent = raw_request.headers.get("user-agent")
-    ip_address = raw_request.client.host if raw_request.client else None
+    user_agent = get_user_agent(raw_request)
+    ip_address = get_client_ip(raw_request)
 
     logger.debug(f"Refresh from IP '{ip_address}' with device info '{user_agent}'")
 
